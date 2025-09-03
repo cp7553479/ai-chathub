@@ -30,7 +30,6 @@ export class DocxLoader implements FileLoaderInterface {
           pageNumber: 1,
         };
 
-        // @ts-expect-error Remove source if present, as it's handled at the FileDocument level
         delete metadata.source;
 
         log('DOCX document processed, lines:', lineCount, 'chars:', charCount);
