@@ -1,0 +1,318 @@
+---
+description: Next.js App Router 页面开发框架指南
+globs: ["src/app/**/*"]
+alwaysApply: false
+---
+
+# Next.js App Router 页面开发框架
+
+本规则定义了基于 Next.js 15 App Router 的完整页面开发框架，包含响应式布局、路由结构、状态管理等核心要素。
+
+## 📁 标准文件结构
+
+### 路由层次结构
+```
+app/
+├── [variants]/                 # 动态路由变体（响应式+国际化）
+│   ├── layout.tsx              # 根布局（GlobalProvider）
+│   └── (main)/                 # 路由组
+│       ├── layout.tsx          # 主布局（ServerLayout）
+│       └── {page}/             # 具体页面
+│           ├── layout.tsx      # 页面布局
+│           ├── page.tsx        # 页面入口
+│           ├── @{slot}/        # 并行路由槽位（可选）
+│           │   ├── _layout/    # 槽位布局
+│           │   ├── features/   # 槽位功能组件
+│           │   └── default.tsx # 槽位默认页面
+│           ├── (group)/        # 路由组（可选）
+│           │   ├── layout.tsx  # 组布局
+│           │   └── page.tsx    # 组页面
+│           ├── _layout/        # 页面布局组件
+│           │   ├── Desktop/    # 桌面端布局
+│           │   ├── Mobile/     # 移动端布局
+│           │   └── type.ts     # 布局类型定义
+│           └── features/       # 页面功能组件
+```
+
+### 组件层次结构
+```
+features/{PageName}/
+├── components/                 # 页面专用组件
+├── hooks/                     # 页面专用hooks
+├── services/                  # 页面专用服务
+├── store/                     # 页面专用状态
+└── types/                     # 页面专用类型
+```
+
+### 全局资源结构
+```
+src/
+├── store/                     # 全局状态管理
+│   ├── {domain}/              # 按业务域划分
+│   │   ├── store.ts           # Store 主入口
+│   │   ├── initialState.ts    # 初始状态
+│   │   ├── selectors.ts       # 状态选择器
+│   │   └── slices/            # 状态切片
+│   │       ├── {feature}/     # 功能切片
+│   │       │   ├── action.ts  # 操作方法
+│   │       │   ├── initialState.ts
+│   │       │   └── selectors.ts
+│   │       └── index.ts
+│   └── middleware/            # 状态中间件
+├── hooks/                     # 全局 Hooks
+│   ├── useFetch*.ts           # 数据获取 Hooks
+│   ├── useInit*.ts            # 初始化 Hooks
+│   ├── useSwitch*.ts          # 切换操作 Hooks
+│   └── use*.ts                # 通用功能 Hooks
+└── services/                  # 全局服务层
+    ├── {domain}/              # 按业务域划分
+    │   ├── api.ts             # API 接口
+    │   ├── types.ts           # 服务类型
+    │   └── utils.ts           # 工具函数
+    └── index.ts
+```
+
+## 🏗️ 核心开发模式
+
+### 1. 响应式布局判断
+```typescript
+// 服务端判断（主要方式）
+const isMobile = await RouteVariants.getIsMobile(props);
+
+// 客户端判断（辅助方式）
+const isMobile = useIsMobile();
+```
+
+### 2. ServerLayout 组件注册
+```typescript
+// layout.tsx
+import ServerLayout from '@/components/server/ServerLayout';
+import Desktop from './_layout/Desktop';
+import Mobile from './_layout/Mobile';
+
+interface LayoutProps {
+  children: ReactNode;
+  // 定义并行路由槽位
+  slotName: ReactNode;
+}
+
+const Layout = ServerLayout<LayoutProps>({ Desktop, Mobile });
+export default Layout;
+```
+
+### 3. 并行路由槽位
+```typescript
+// @{slot}/default.tsx
+const SlotPage = async (props: DynamicLayoutProps) => {
+  const isMobile = await RouteVariants.getIsMobile(props);
+  
+  return (
+    <SlotLayout isMobile={isMobile}>
+      <SlotContent />
+    </SlotLayout>
+  );
+```
+
+### 3. 页面组件结构
+```typescript
+// page.tsx
+const Page = async (props: DynamicLayoutProps) => {
+  const { isMobile } = await parsePageMetaProps(props);
+  
+  return <Client mobile={isMobile} />;
+};
+
+// Client.tsx
+const Client = ({ mobile }: { mobile: boolean }) => {
+  return <PageContent />;
+};
+```
+
+### 4. 懒加载优化
+```typescript
+// 组件懒加载
+const LazyComponent = lazy(() => import('./features/Component'));
+
+// 使用Suspense包装
+<Suspense fallback={<Loading />}>
+  <LazyComponent />
+</Suspense>
+```
+
+### 5. 全局状态管理集成
+```typescript
+// 全局 Store 使用
+import { useChatStore } from '@/store/chat';
+import { useSessionStore } from '@/store/session';
+import { useGlobalStore } from '@/store/global';
+
+// 在组件中使用
+const Component = () => {
+  const [messages, sendMessage] = useChatStore((s) => [
+    s.messagesMap,
+    s.sendMessage,
+  ]);
+  
+  const [activeId, switchSession] = useSessionStore((s) => [
+    s.activeId,
+    s.switchSession,
+  ]);
+  
+  return <div>{/* 组件内容 */}</div>;
+};
+```
+
+### 6. 全局 Hooks 使用
+```typescript
+// 数据获取 Hooks
+import { useFetchMessages } from '@/hooks/useFetchMessages';
+import { useFetchTopics } from '@/hooks/useFetchTopics';
+import { useInitAgentConfig } from '@/hooks/useInitAgentConfig';
+
+// 在组件中使用
+const PageComponent = () => {
+  useFetchMessages();    // 自动获取消息
+  useFetchTopics();      // 自动获取话题
+  const { isLoading } = useInitAgentConfig();
+  
+  return <div>{/* 页面内容 */}</div>;
+};
+```
+
+### 7. 页面级状态管理（可选）
+```typescript
+// 仅在需要页面专用状态时使用
+interface PageStore {
+  data: PageData[];
+  loading: boolean;
+  
+  fetchData: () => Promise<void>;
+  updateData: (data: PageData) => void;
+}
+
+const usePageStore = create<PageStore>((set, get) => ({
+  // 实现状态逻辑
+}));
+```
+
+## ✅ 开发检查清单
+
+### 路由与布局
+- [ ] 创建完整的路由文件结构
+- [ ] 实现 Desktop/Mobile 布局组件
+- [ ] 配置 ServerLayout 响应式切换
+- [ ] 定义并行路由槽位类型（可选）
+- [ ] 实现路由变体处理逻辑
+
+### 组件与功能
+- [ ] 创建页面功能组件目录
+- [ ] 实现懒加载和 Suspense 包装
+- [ ] 添加加载状态和错误边界
+- [ ] 实现组件间通信机制
+- [ ] 配置组件样式系统
+
+### 状态管理
+- [ ] 创建全局 Store
+- [ ] 创建页面专用 Store
+- [ ] 实现数据获取和更新逻辑
+- [ ] 配置状态持久化（如需要）
+- [ ] 实现状态初始化逻辑
+- [ ] 添加状态调试工具
+
+### 服务层
+- [ ] 实现页面相关 API 服务
+- [ ] 配置数据验证和错误处理
+- [ ] 实现缓存策略
+- [ ] 添加请求拦截器
+- [ ] 配置服务层类型定义
+
+### 类型定义
+- [ ] 定义页面数据类型
+- [ ] 创建 API 接口类型
+- [ ] 定义组件 Props 类型
+- [ ] 实现路由参数类型
+- [ ] 配置全局类型导出
+
+### 样式与主题
+- [ ] 配置 antd-style 主题系统
+- [ ] 实现响应式样式适配
+- [ ] 添加暗色/亮色主题支持
+- [ ] 配置组件样式隔离
+- [ ] 实现动画和过渡效果
+
+### 性能优化
+- [ ] 实现代码分割和懒加载
+- [ ] 配置图片和资源优化
+- [ ] 添加缓存策略
+- [ ] 实现虚拟滚动（大列表）
+- [ ] 配置预加载策略
+
+### 国际化与可访问性
+- [ ] 配置多语言支持
+- [ ] 实现 RTL 语言适配
+- [ ] 添加键盘导航支持
+- [ ] 实现屏幕阅读器兼容
+- [ ] 配置语义化 HTML 结构
+
+## 🚀 最佳实践
+
+### 文件命名规范
+- 页面文件：`page.tsx`
+- 布局文件：`layout.tsx`
+- 组件文件：`PascalCase.tsx`
+- 工具文件：`camelCase.ts`
+- 类型文件：`types.ts`
+
+### 组件设计原则
+- 单一职责：每个组件只负责一个功能
+- 可复用性：优先设计可复用的通用组件
+- 类型安全：所有组件必须有完整的类型定义
+- 性能优化：合理使用 memo、useMemo、useCallback
+- 错误处理：实现优雅的错误降级机制
+
+### 状态管理原则
+- 专用优先：优先使用页面专用 Store
+- 就近原则：页面专用状态尽可能靠近使用位置
+- 异步处理：合理处理异步状态更新
+- 调试友好：添加适当的调试信息
+
+### 全局资源使用原则
+- Store 分层：按业务域划分 Store，避免单一巨大 Store
+- Hooks 封装：复杂逻辑封装为可复用的 Hooks
+- 服务分离：API 调用和业务逻辑分离到服务层
+- 类型安全：所有全局资源都有完整的类型定义
+- 性能优化：合理使用 selectors 避免不必要的重新渲染
+
+### 性能考虑
+- 懒加载：非关键路径组件使用懒加载
+- 代码分割：按路由和功能进行代码分割
+- 缓存策略：合理使用浏览器和应用缓存
+- 渲染优化：避免不必要的重新渲染
+- 资源优化：压缩和优化静态资源
+
+## 📋 常见问题排查
+
+### 路由问题
+- 检查文件结构是否符合 App Router 规范
+- 确认并行路由槽位命名正确
+- 验证 ServerLayout 组件注册
+- 检查路由变体解析逻辑
+
+### 响应式问题
+- 确认 UAParser 正确解析设备类型
+- 检查 Desktop/Mobile 组件切换逻辑
+- 验证样式断点配置
+- 确认响应式 hooks 使用正确
+
+### 状态管理问题
+- 检查全局 Store 是否正确导入和使用
+- 确认状态订阅和更新逻辑
+- 验证异步操作错误处理
+- 检查状态持久化配置
+- 确认 selectors 使用是否正确
+
+### 性能问题
+- 使用 React DevTools 分析渲染性能
+- 检查懒加载和代码分割配置
+- 分析 bundle 大小和加载时间
+- 优化图片和静态资源加载
