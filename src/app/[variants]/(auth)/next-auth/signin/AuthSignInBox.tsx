@@ -5,15 +5,17 @@ import { LobeChat } from '@lobehub/ui/brand';
 import { Col, Flex, Row, Skeleton } from 'antd';
 import { createStyles } from 'antd-style';
 import { AuthError } from 'next-auth';
-import { signIn } from 'next-auth/react';
+import { getProviders, signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import BrandWatermark from '@/components/BrandWatermark';
 import AuthIcons from '@/components/NextAuth/AuthIcons';
 import { DOCUMENTS_REFER_URL, PRIVACY_URL, TERMS_URL } from '@/const/url';
 import { useUserStore } from '@/store/user';
+
+import CredentialsLoginForm from './CredentialsLoginForm';
 
 const useStyles = createStyles(({ css, token }) => ({
   button: css`
@@ -71,6 +73,7 @@ export default memo(() => {
   const { t } = useTranslation('clerk');
   const router = useRouter();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+  const [providers, setProviders] = useState<Record<string, any> | null>(null);
 
   const oAuthSSOProviders = useUserStore((s) => s.oAuthSSOProviders);
 
@@ -78,6 +81,22 @@ export default memo(() => {
 
   // Redirect back to the page url, fallback to '/' if failed
   const callbackUrl = searchParams.get('callbackUrl') ?? '/';
+
+  // 在客户端获取 providers 数据
+  useEffect(() => {
+    getProviders().then(setProviders);
+  }, []);
+
+  // 如果没有提供 providers 数据，回退到原有的 OAuth 提供者列表
+  const hasProviders = providers && Object.keys(providers).length > 0;
+  const credentialProvider = hasProviders
+    ? Object.values(providers).find((p) => p.type === 'credentials')
+    : null;
+  const oauthProviders = hasProviders
+    ? Object.values(providers).filter((p) => p.type === 'oauth')
+    : oAuthSSOProviders
+      ? oAuthSSOProviders.map((name) => ({ id: name, name }))
+      : [];
 
   const handleSignIn = async (provider: string) => {
     setLoadingProvider(provider);
@@ -124,21 +143,30 @@ export default memo(() => {
           </div>
           {/* Content */}
           <Flex gap="small" vertical>
-            {oAuthSSOProviders ? (
-              oAuthSSOProviders.map((provider) => (
+            {/* 显示 Credential Provider 表单 */}
+            {credentialProvider && (
+              <CredentialsLoginForm
+                providerId={credentialProvider.id}
+                providerName={credentialProvider.name}
+              />
+            )}
+
+            {/* 显示 OAuth Providers 按钮 */}
+            {oauthProviders.length > 0 &&
+              oauthProviders.map((provider) => (
                 <Button
                   className={styles.button}
-                  icon={AuthIcons(provider, 16)}
-                  key={provider}
-                  loading={loadingProvider === provider}
-                  onClick={() => handleSignIn(provider)}
+                  icon={AuthIcons(provider.name, 16)}
+                  key={provider.id}
+                  loading={loadingProvider === provider.id}
+                  onClick={() => handleSignIn(provider.id)}
                 >
-                  {provider}
+                  {provider.name}
                 </Button>
-              ))
-            ) : (
-              <BtnListLoading />
-            )}
+              ))}
+
+            {/* 回退：显示加载状态 */}
+            {!credentialProvider && oauthProviders.length === 0 && <BtnListLoading />}
           </Flex>
         </Flex>
       </div>

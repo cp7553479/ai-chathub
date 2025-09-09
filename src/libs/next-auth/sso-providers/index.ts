@@ -12,6 +12,7 @@ import Keycloak from './keycloak';
 import Logto from './logto';
 import MicrosoftEntraID from './microsoft-entra-id';
 import Okta from './okta';
+import Supabase from './supabase';
 import WeChat from './wechat';
 import Zitadel from './zitadel';
 
@@ -32,4 +33,5 @@ export const ssoProviders = [
   Google,
   Cognito,
   Okta,
+  Supabase,
 ];
