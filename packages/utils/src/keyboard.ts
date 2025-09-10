@@ -1,8 +1,9 @@
-import { KeyboardEvent } from 'react';
-
+//import { KeyboardEvent } from 'react';
 import { isMacOS } from './platform';
 
-export const isCommandPressed = (event: KeyboardEvent) => {
+type KeyModEvent = { ctrlKey: boolean, metaKey: boolean; };
+
+export const isCommandPressed = (event: KeyModEvent) => {
   const isMac = isMacOS();
 
   if (isMac) {

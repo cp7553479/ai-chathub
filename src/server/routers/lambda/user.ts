@@ -2,7 +2,7 @@ import { UserJSON } from '@clerk/backend';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
-import { enableClerk } from '@/const/auth';
+import { enableClerk, enableNextAuth } from '@/const/auth';
 import { isDesktop } from '@/const/version';
 import { MessageModel } from '@/database/models/message';
 import { SessionModel } from '@/database/models/session';
@@ -82,7 +82,12 @@ export const userRouter = router({
               continue;
             }
           }
-
+          // if in NextAuth mode, create user with current userId
+          else if (enableNextAuth) {
+            await UserModel.makeSureUserExist(ctx.serverDB, ctx.userId);
+            pino.info('create NextAuth user');
+            continue;
+          }
           // if in desktop mode, make sure desktop user exist
           else if (isDesktop) {
             await UserModel.makeSureUserExist(ctx.serverDB, ctx.userId);

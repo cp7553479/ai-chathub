@@ -3,7 +3,7 @@
 import { Button, Icon } from '@lobehub/ui';
 import { Lock, Mail, User } from 'lucide-react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import React, { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
@@ -18,7 +18,6 @@ interface CredentialsLoginFormProps {
 
 const CredentialsLoginForm = memo<CredentialsLoginFormProps>(({ providerId }) => {
   const { t } = useTranslation(['common', 'auth']);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -32,20 +31,13 @@ const CredentialsLoginForm = memo<CredentialsLoginFormProps>(({ providerId }) =>
 
     setLoading(true);
     try {
-      const result = await signIn(providerId, {
+      await signIn(providerId, {
         callbackUrl,
         email,
         mode: isSignUp ? 'signup' : 'signin',
         password,
-        redirect: false,
+        redirect: true,
       });
-
-      if (result?.ok) {
-        router.push(callbackUrl);
-      } else {
-        console.error('Login failed:', result?.error);
-        // 这里可以添加错误提示，复用项目中的错误处理组件
-      }
     } catch (error) {
       console.error('Login error:', error);
     } finally {
@@ -55,6 +47,7 @@ const CredentialsLoginForm = memo<CredentialsLoginFormProps>(({ providerId }) =>
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       handleSubmit();
     }
   };
@@ -69,7 +62,7 @@ const CredentialsLoginForm = memo<CredentialsLoginFormProps>(({ providerId }) =>
       }
       title={isSignUp ? t('signup', 'Sign Up') : t('login', 'Sign In')}
     >
-      <div onKeyPress={handleKeyPress} style={{ maxWidth: '300px', width: '100%' }}>
+      <div onKeyDown={handleKeyPress} style={{ maxWidth: '300px', width: '100%' }}>
         <FormInput
           autoComplete="email"
           onChange={setEmail}
