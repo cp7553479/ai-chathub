@@ -64,7 +64,7 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   dalle: true,
   ai_image: true,
 
-  check_updates: true,
+  check_updates: false,
   welcome_suggest: true,
   token_counter: true,
 

@@ -4,10 +4,11 @@
 
 export const LOBE_CHAT_CLOUD = 'LobeChat Cloud';
 
-export const BRANDING_NAME = 'LobeChat';
-export const BRANDING_LOGO_URL = '';
+export const BRANDING_NAME = 'CrewHub';
+// Use public assets via absolute path at runtime
+export const BRANDING_LOGO_URL = '/icons/crewhub-logo.png';
 
-export const ORG_NAME = 'LobeHub';
+export const ORG_NAME = 'CrewHub';
 
 export const BRANDING_URL = {
   help: undefined,
@@ -16,14 +17,14 @@ export const BRANDING_URL = {
 };
 
 export const SOCIAL_URL = {
-  discord: 'https://discord.gg/AYFPHvv2jT',
-  github: 'https://github.com/lobehub',
-  medium: 'https://medium.com/@lobehub',
-  x: 'https://x.com/lobehub',
-  youtube: 'https://www.youtube.com/@lobehub',
+  discord: '',
+  github: '',
+  medium: '',
+  x: '',
+  youtube: '',
 };
 
 export const BRANDING_EMAIL = {
-  business: 'hello@lobehub.com',
-  support: 'support@lobehub.com',
+  business: '',
+  support: '',
 };

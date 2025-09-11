@@ -64,7 +64,7 @@ export const useCategory = () => {
                 icon: <Icon icon={Brain} />,
                 key: SettingsTabs.LLM,
                 label: (
-                  <Link href={'/settings/llm'} onClick={(e) => e.preventDefault()}>
+                  <Link href={'/settings/provider'} onClick={(e) => e.preventDefault()}>
                     {t('tab.llm')}
                   </Link>
                 ),

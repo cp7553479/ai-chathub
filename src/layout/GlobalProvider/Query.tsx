@@ -5,13 +5,16 @@ import React, { PropsWithChildren, useState } from 'react';
 
 import { lambdaQuery, lambdaQueryClient } from '@/libs/trpc/client';
 
+// 修复类型冲突
+const TRPCProvider = lambdaQuery.Provider as any;
+
 const QueryProvider = ({ children }: PropsWithChildren) => {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <lambdaQuery.Provider client={lambdaQueryClient} queryClient={queryClient}>
+    <TRPCProvider client={lambdaQueryClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </lambdaQuery.Provider>
+    </TRPCProvider>
   );
 };
 

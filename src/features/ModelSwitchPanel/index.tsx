@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { ModelItemRender, ProviderItemRender } from '@/components/ModelSelect';
-import { isDeprecatedEdition } from '@/const/version';
 import ActionDropdown from '@/features/ChatInput/ActionBar/components/ActionDropdown';
 import { useEnabledChatModels } from '@/hooks/useEnabledChatModels';
 import { useAgentStore } from '@/store/agent';
@@ -81,9 +80,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
               </Flexbox>
             ),
             onClick: () => {
-              router.push(
-                isDeprecatedEdition ? '/settings/llm' : `/settings/provider/${provider.id}`,
-              );
+              router.push(`/settings/provider/${provider.id}`);
             },
           },
         ];
@@ -102,7 +99,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
             </Flexbox>
           ),
           onClick: () => {
-            router.push(isDeprecatedEdition ? '/settings/llm' : `/settings/provider`);
+            router.push(`/settings/provider`);
           },
         },
       ];
@@ -120,9 +117,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
             source={provider.source}
           />
           {showLLM && (
-            <Link
-              href={isDeprecatedEdition ? '/settings/llm' : `/settings/provider/${provider.id}`}
-            >
+            <Link href={`/settings/provider/${provider.id}`}>
               <ActionIcon
                 icon={LucideBolt}
                 size={'small'}

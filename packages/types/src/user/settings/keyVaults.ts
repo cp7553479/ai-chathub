@@ -49,6 +49,7 @@ export interface UserKeyVaults extends SearchEngineKeyVaults {
   bedrock?: AWSBedrockKeyVault;
   cloudflare?: CloudflareKeyVault;
   cohere?: OpenAICompatibleKeyVault;
+  crewhub?: OpenAICompatibleKeyVault;
   deepseek?: OpenAICompatibleKeyVault;
   fal?: FalKeyVault;
   fireworksai?: OpenAICompatibleKeyVault;

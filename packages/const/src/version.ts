@@ -9,7 +9,8 @@ export const isUsePgliteDB = process.env.NEXT_PUBLIC_CLIENT_DB === 'pglite';
 
 export const isDesktop = process.env.NEXT_PUBLIC_IS_DESKTOP_APP === '1';
 
-export const isDeprecatedEdition = !isServerMode && !isUsePgliteDB;
+// 强制启用新版 Provider 配置页与逻辑
+export const isDeprecatedEdition = false;
 
 // @ts-ignore
 export const isCustomBranding = BRANDING_NAME !== 'LobeChat';

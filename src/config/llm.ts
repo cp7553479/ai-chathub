@@ -10,6 +10,9 @@ export const getLLMConfig = () => {
       ENABLED_OPENAI: z.boolean(),
       OPENAI_API_KEY: z.string().optional(),
 
+      ENABLED_CREWHUB: z.boolean(),
+      CREWHUB_API_KEY: z.string().optional(),
+
       ENABLED_AZURE_OPENAI: z.boolean(),
       AZURE_API_KEY: z.string().optional(),
       AZURE_API_VERSION: z.string().optional(),
@@ -232,6 +235,9 @@ export const getLLMConfig = () => {
 
       ENABLED_OPENROUTER: !!process.env.OPENROUTER_API_KEY,
       OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+
+      ENABLED_CREWHUB: process.env.ENABLED_CREWHUB !== '0',
+      CREWHUB_API_KEY: process.env.CREWHUB_API_KEY,
 
       ENABLED_TOGETHERAI: !!process.env.TOGETHERAI_API_KEY,
       TOGETHERAI_API_KEY: process.env.TOGETHERAI_API_KEY,
